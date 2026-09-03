@@ -1,0 +1,140 @@
+modules = ["nodejs-20", "web", "bash", "postgresql-16"]
+[nix]
+channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+BASE_PATH = "/"
+ADMIN_EMAILS = "xbhishekh@gmail.com,admin@gmail.com"
+WHOP_COMPANY_ID = "biz_Lml9vt2jcdofE0"
+
+[userenv.development]
+NODE_ENV = "development"
+
+[userenv.production]
+NODE_ENV = "production"
+YTDLP_PATH = "/home/runner/workspace/bin/yt-dlp"
+VITE_CLERK_PROXY_URL = "https://autocliper.pro/api/__clerk"
+ALLOWED_ORIGIN = "https://autocliper.pro"
+PUBLIC_APP_URL = "https://autocliper.pro"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "artifacts/ytdlp-ui: web"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "artifacts/api-server: API Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "api-server-test"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "api-server-typecheck"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "ytdlp-ui-typecheck"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "ytdlp-ui-test"
+
+[[workflows.workflow]]
+name = "artifacts/ytdlp-ui: web"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=5000 BASE_PATH=/ pnpm --filter @workspace/ytdlp-ui run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow]]
+name = "artifacts/api-server: API Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=8080 pnpm --filter @workspace/api-server run dev"
+waitForPort = 8080
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "api-server-test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm --filter @workspace/api-server run test"
+
+[workflows.workflow.metadata]
+isValidation = true
+
+[[workflows.workflow]]
+name = "api-server-typecheck"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm --filter @workspace/api-server run typecheck"
+
+[workflows.workflow.metadata]
+isValidation = true
+
+[[workflows.workflow]]
+name = "ytdlp-ui-test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm --filter @workspace/ytdlp-ui run test"
+
+[workflows.workflow.metadata]
+isValidation = true
+
+[[workflows.workflow]]
+name = "ytdlp-ui-typecheck"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm --filter @workspace/ytdlp-ui run typecheck"
+
+[workflows.workflow.metadata]
+isValidation = true
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
+
+[deployment]
+deploymentTarget = "vm"
+run = ["bash", "-c", "export PATH=\"$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin:$PATH\" && PORT=5000 node --enable-source-maps artifacts/api-server/dist/index.mjs"]
+build = ["bash", "-c", "pnpm install && pnpm --filter @workspace/ytdlp-ui run build && pnpm --filter @workspace/api-server run build && mkdir -p /home/runner/workspace/bin && rm -f /home/runner/workspace/bin/yt-dlp && curl -fsSL --retry 3 --retry-all-errors https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -o /home/runner/workspace/bin/yt-dlp && chmod +x /home/runner/workspace/bin/yt-dlp && echo 'yt-dlp version:' && /home/runner/workspace/bin/yt-dlp --version"]
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 120000
+
+[objectStorage]
+defaultBucketID = "replit-objstore-462d31dd-d429-4a6d-92f3-b5b12c6adfd5"

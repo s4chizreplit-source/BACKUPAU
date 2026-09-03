@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+
+# Keep the commit successful if GitHub is temporarily unavailable. The
+# commit remains local and can be synced manually with the same command.
+node scripts/github-pr-sync.mjs || {
+  printf '%s\n' '[github-sync] Commit created locally; GitHub PR sync can be retried later.'
+}

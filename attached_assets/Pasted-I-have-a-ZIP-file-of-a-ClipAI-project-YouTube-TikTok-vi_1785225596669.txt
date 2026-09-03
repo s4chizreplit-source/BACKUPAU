@@ -1,0 +1,119 @@
+I have a ZIP file of a ClipAI project (YouTube/TikTok video to short clips converter). Extract it and set up the complete working project from scratch. Follow every step below exactly.
+
+---
+
+STEP 1 — INSTALL DEPENDENCIES
+Run: pnpm install
+
+---
+
+STEP 2 — REPLIT.NIX (ffmpeg required)
+Make sure replit.nix looks like this:
+
+{ pkgs }: {
+  deps = [
+    pkgs.nodejs_20
+    pkgs.ffmpeg
+  ];
+}
+
+---
+
+STEP 3 — ENVIRONMENT SECRETS
+Add these in Replit Secrets tab (Tools → Secrets):
+
+CLERK_SECRET_KEY        = (get from clerk.com → your app → API Keys)
+CLERK_PUBLISHABLE_KEY   = (get from clerk.com → your app → API Keys)
+VITE_CLERK_PUBLISHABLE_KEY = (same value as CLERK_PUBLISHABLE_KEY)
+SESSION_SECRET          = (any random 32+ character string)
+
+---
+
+STEP 4 — DATABASE
+Attach Replit PostgreSQL (Tools → Database). Then run this SQL:
+
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  clerk_id TEXT UNIQUE NOT NULL,
+  email TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS clip_jobs (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  source_url TEXT NOT NULL,
+  platform TEXT NOT NULL,
+  clip_duration INTEGER NOT NULL,
+  clip_count INTEGER NOT NULL,
+  total_duration TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+---
+
+STEP 5 — WORKFLOWS
+Create exactly these two workflows:
+
+Workflow 1:
+  Name: artifacts/ytdlp-ui: web
+  Command: pnpm --filter @workspace/ytdlp-ui run dev
+
+Workflow 2:
+  Name: artifacts/api-server: API Server
+  Command: pnpm --filter @workspace/api-server run dev
+
+---
+
+STEP 6 — ARTIFACTS
+Register two artifacts so routing works:
+
+Artifact 1:
+  kind: web
+  title: yt-dlp Downloader
+  dir: artifacts/ytdlp-ui
+  previewPath: /
+
+Artifact 2:
+  kind: api
+  title: API Server
+  dir: artifacts/api-server
+  port: 8080
+
+---
+
+STEP 7 — CLERK SETUP (clerk.com)
+1. Go to clerk.com → create free account → create new application named "ClipAI"
+2. Enable Google OAuth
+3. Enable Email + Password
+4. Copy Publishable Key and Secret Key → paste in Secrets (Step 3)
+5. In Clerk dashboard → Domains → add your replit.dev domain
+
+---
+
+STEP 8 — VERIFY APP WORKS
+Start both workflows. Open the preview. You should see:
+- ClipAI landing page with dark theme and lime-green accent
+- Paste a YouTube URL → click Get Clips → clips generate in ~60-90 seconds
+- Thumbnails visible on each clip card
+- Download button works
+
+---
+
+STEP 9 — DEPLOY TO PRODUCTION
+Once working in dev, click Deploy in Replit. The production build commands are:
+  Frontend: pnpm --filter @workspace/ytdlp-ui run build
+  Backend:  pnpm --filter @workspace/api-server run build
+
+---
+
+TECHNICAL NOTES (do not change these):
+- Video download uses Railway API: https://yt-api-railway-production-7709.up.railway.app/download?url=... (already hardcoded, no setup needed)
+- ffmpeg is auto-detected from nix store at startup (code handles this automatically)
+- Files served from /tmp/clipai-serve/ with 2-hour TTL (disk-based, survives restarts)
+- Clips processed per-segment only — never re-encodes the full video (fast)
+- Default settings: 5 clips, 30s each, ultrafast preset, CRF 28
+
+---
+
+Do all steps in order. Start both workflows, confirm the app loads, then deploy.

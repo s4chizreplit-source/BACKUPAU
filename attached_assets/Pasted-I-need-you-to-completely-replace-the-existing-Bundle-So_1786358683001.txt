@@ -1,0 +1,843 @@
+I need you to completely replace the existing Bundle Social integration in my AutoClipper application with POST FOR ME.
+
+IMPORTANT:
+I already have an active Post for Me Pro subscription.
+
+I will provide the Post for Me API key through Replit Secrets.
+
+DO NOT use Bundle Social anymore.
+
+DO NOT leave any Bundle Social functionality in the application.
+
+DO NOT create mock/fake social accounts.
+
+DO NOT hardcode social account IDs.
+
+DO NOT expose the Post for Me API key to the frontend.
+
+==================================================
+STEP 1 — INSPECT THE EXISTING PROJECT FIRST
+==================================================
+
+Before changing anything, inspect the complete AutoClipper codebase.
+
+Identify:
+
+- frontend framework
+- backend framework
+- database
+- authentication
+- current video generation flow
+- storage system
+- deployment configuration
+- existing Bundle Social integration
+- existing social account UI
+- existing publishing/scheduling UI
+
+Do not break the existing AI video clipping functionality.
+
+Do not modify unrelated features.
+
+==================================================
+STEP 2 — READ OFFICIAL POST FOR ME DOCUMENTATION
+==================================================
+
+You MUST read the CURRENT OFFICIAL Post for Me documentation before implementing.
+
+Official documentation:
+
+https://www.postforme.dev/developers
+
+https://www.postforme.dev/resources
+
+https://www.postforme.dev/resources/multi-user-applications
+
+https://www.postforme.dev/resources/linking-data-with-external-ids
+
+https://www.postforme.dev/resources/handling-account-connection-redirects-and-webhooks
+
+https://www.postforme.dev/resources/account-connections
+
+https://www.postforme.dev/resources/posting-media
+
+https://www.postforme.dev/resources/quickstart-vs-white-label
+
+If any URL has changed, navigate from:
+
+https://www.postforme.dev/resources
+
+Use the current official documentation.
+
+DO NOT rely on old tutorials or guessed endpoints.
+
+==================================================
+STEP 3 — POST FOR ME API KEY
+==================================================
+
+Use this server-side environment variable:
+
+POSTFORME_API_KEY
+
+I will add the real key to Replit Secrets.
+
+The key must NEVER appear in:
+
+- frontend code
+- browser JavaScript
+- HTML
+- localStorage
+- sessionStorage
+- GitHub
+- public API responses
+- client-side environment variables
+- logs
+
+All Post for Me API requests must go through our backend.
+
+==================================================
+STEP 4 — REMOVE BUNDLE SOCIAL COMPLETELY
+==================================================
+
+Search the entire repository for:
+
+bundle
+Bundle
+bundle.social
+Bundle Social
+bundlesocial
+
+Remove the old integration safely.
+
+Remove:
+
+- Bundle Social API calls
+- Bundle Social OAuth
+- Bundle Social account handling
+- Bundle Social environment variables
+- Bundle Social UI components
+- Bundle Social publishing functions
+- Bundle Social scheduling functions
+
+Replace them with Post for Me.
+
+DO NOT delete unrelated AutoClipper features.
+
+==================================================
+STEP 5 — DETERMINE THE CORRECT CALLBACK URL
+==================================================
+
+THIS IS VERY IMPORTANT.
+
+Inspect the actual deployed AutoClipper application URL.
+
+Determine the correct public HTTPS URL that should receive the Post for Me OAuth redirect.
+
+Do NOT guess.
+
+Do NOT use:
+
+https://your-url.com/auth/callback
+
+Do NOT use localhost for production.
+
+Do NOT use an internal Replit URL if it is not publicly accessible.
+
+Find the real deployed URL from the Replit project/deployment configuration.
+
+Then determine a clean route for Post for Me, for example:
+
+/auth/postforme/callback
+
+or
+
+/social/postforme/callback
+
+Choose the route that best fits the existing application architecture.
+
+The final callback URL should be:
+
+https://<REAL-AUTOCLIPPER-DOMAIN>/<CHOSEN-CALLBACK-PATH>
+
+IMPORTANT:
+
+Before I configure the Post for Me dashboard, TELL ME THE EXACT CALLBACK URL I MUST ENTER.
+
+Do not just tell me a placeholder.
+
+If the deployment URL is not currently available or cannot be determined, STOP and clearly tell me:
+
+"Please provide/deploy the public AutoClipper URL first."
+
+Do not invent a URL.
+
+==================================================
+STEP 6 — POST FOR ME PROJECT REDIRECT
+==================================================
+
+I have a Post for Me Quickstart/Pro project.
+
+The Post for Me dashboard has:
+
+Project Redirect URL
+
+I need to enter the exact callback URL there.
+
+Implement the callback route in AutoClipper so that it can receive the parameters documented by Post for Me:
+
+provider
+projectId
+isSuccess
+accountIds
+failedAccountIds
+error
+
+Example concept:
+
+GET /auth/postforme/callback
+
+The route must:
+
+1. Read the query parameters.
+2. Determine whether connection succeeded.
+3. Read accountIds.
+4. Read failedAccountIds.
+5. Read error if present.
+6. Identify the currently authenticated AutoClipper user.
+7. Refresh/fetch the user's Post for Me social accounts from the backend.
+8. Redirect the user to the Social Accounts page.
+9. Show a success/failure message.
+
+DO NOT invent a callback format.
+
+Follow the official Post for Me documentation.
+
+==================================================
+STEP 7 — MULTI-USER ARCHITECTURE
+==================================================
+
+This is critical.
+
+AutoClipper will have many users.
+
+Each AutoClipper user must have their own Post for Me social accounts.
+
+Use Post for Me's official external_id mechanism.
+
+Example:
+
+AutoClipper user:
+
+user.id = 12345
+
+Post for Me external_id:
+
+"user_12345"
+
+When generating the Post for Me authentication URL:
+
+external_id = current AutoClipper user's unique ID
+
+DO NOT use one global external_id for all users.
+
+DO NOT use the same external_id for every user.
+
+==================================================
+STEP 8 — MULTIPLE ACCOUNTS PER PLATFORM
+==================================================
+
+VERY IMPORTANT:
+
+One AutoClipper user must be able to connect:
+
+Instagram #1
+Instagram #2
+Instagram #3
+Instagram #4
+
+AND:
+
+TikTok #1
+TikTok #2
+TikTok #3
+
+AND:
+
+YouTube Channel #1
+YouTube Channel #2
+YouTube Channel #3
+
+Do NOT create a one-account-per-platform restriction.
+
+Do NOT replace the previous account when a new account is connected.
+
+Each Post for Me social account must be stored separately.
+
+Example:
+
+User 123
+
+Instagram:
+@page_one
+@page_two
+@page_three
+
+TikTok:
+@account_one
+@account_two
+
+YouTube:
+Channel One
+Channel Two
+
+All must coexist.
+
+==================================================
+STEP 9 — SOCIAL ACCOUNT DATABASE
+==================================================
+
+Create/use a database model similar to:
+
+social_connections
+
+id
+user_id
+postforme_social_account_id
+platform
+username
+display_name
+profile_image
+status
+external_id
+created_at
+updated_at
+
+Do not store OAuth access/refresh tokens ourselves if Post for Me manages them.
+
+Store the Post for Me social account ID.
+
+Add appropriate indexes and uniqueness constraints.
+
+==================================================
+STEP 10 — CONNECT ACCOUNT
+==================================================
+
+Create backend endpoint:
+
+POST /api/social/connect
+
+Request:
+
+{
+  "platform": "instagram"
+}
+
+or:
+
+{
+  "platform": "tiktok"
+}
+
+or:
+
+{
+  "platform": "youtube"
+}
+
+Backend must:
+
+1. Authenticate the current AutoClipper user.
+2. Get internal user ID.
+3. Generate a fresh Post for Me authorization URL.
+4. Pass external_id = current user ID.
+5. Return the authorization URL.
+
+IMPORTANT:
+
+Generate a NEW authorization URL every time the user clicks Connect.
+
+Do not cache and reuse old authorization URLs.
+
+Follow Post for Me documentation.
+
+==================================================
+STEP 11 — FETCH SOCIAL ACCOUNTS
+==================================================
+
+Create:
+
+GET /api/social/accounts
+
+Backend must:
+
+1. Authenticate current user.
+2. Use current user's external_id.
+3. Query Post for Me.
+4. Filter accounts by external_id.
+5. Return only accounts belonging to current user.
+
+Never trust account ownership from frontend input.
+
+==================================================
+STEP 12 — SOCIAL ACCOUNTS UI
+==================================================
+
+Create a professional Social Accounts page.
+
+Example:
+
+SOCIAL ACCOUNTS
+
+Instagram
+
+@account_one
+Connected
+[Disconnect]
+
+@account_two
+Connected
+[Disconnect]
+
+[ + Connect another Instagram ]
+
+TikTok
+
+@account_one
+Connected
+[Disconnect]
+
+[ + Connect another TikTok ]
+
+YouTube
+
+Channel One
+Connected
+[Disconnect]
+
+Channel Two
+Connected
+[Disconnect]
+
+[ + Connect another YouTube ]
+
+DO NOT show only one account per platform.
+
+==================================================
+STEP 13 — PUBLISHING
+==================================================
+
+When an AutoClipper short is ready, show:
+
+Publish To:
+
+Instagram
+☐ @account_one
+☐ @account_two
+☐ @account_three
+
+TikTok
+☐ @account_one
+☐ @account_two
+
+YouTube
+☐ Channel One
+☐ Channel Two
+
+The user can select ANY combination.
+
+Example:
+
+☑ Instagram @account_one
+☑ Instagram @account_three
+☑ TikTok @account_two
+☑ YouTube Channel One
+
+Then publish the same generated video to every selected account.
+
+Use the actual Post for Me social account IDs.
+
+DO NOT hardcode account IDs.
+
+==================================================
+STEP 14 — ACCOUNT OWNERSHIP SECURITY
+==================================================
+
+Before publishing:
+
+1. Authenticate current AutoClipper user.
+2. Receive selected social account IDs.
+3. Verify each account belongs to the current AutoClipper user.
+4. Verify the Post for Me external_id matches the current user.
+5. Only then publish.
+
+User A must NEVER be able to publish to User B's account.
+
+If ownership fails:
+
+return 403 or appropriate safe error.
+
+==================================================
+STEP 15 — PUBLISH NOW
+==================================================
+
+Create:
+
+POST /api/social/posts
+
+Accept:
+
+video
+caption
+selected social account IDs
+optional platform-specific metadata
+
+Use the official Post for Me API.
+
+Use their documented social_accounts/account selection mechanism.
+
+After creating the post:
+
+Store:
+
+postforme_post_id
+user_id
+selected_account_ids
+status
+created_at
+
+Show status to the user.
+
+==================================================
+STEP 16 — SCHEDULING
+==================================================
+
+Create:
+
+POST /api/social/posts/schedule
+
+Support:
+
+video
+caption
+selected accounts
+scheduled date
+scheduled time
+timezone
+
+Use Post for Me's official scheduling functionality.
+
+Do NOT build an unnecessary custom cron publishing system if Post for Me already provides scheduling.
+
+Create a Content Calendar.
+
+==================================================
+STEP 17 — WEBHOOKS
+==================================================
+
+Implement the official Post for Me webhook flow.
+
+Create:
+
+POST /api/webhooks/postforme
+
+Use the official webhook events documented by Post for Me.
+
+Handle relevant events such as:
+
+social.account.created
+
+post status changes
+
+publishing success
+
+publishing failure
+
+Verify webhook authenticity according to the official documentation if supported.
+
+Update local database records.
+
+==================================================
+STEP 18 — MEDIA / VIDEO
+==================================================
+
+Use Post for Me's officially supported media upload method.
+
+The AutoClipper generated video may be stored in:
+
+Replit storage
+S3
+Cloudinary
+Supabase Storage
+existing project storage
+
+Inspect the existing AutoClipper storage system first.
+
+Do NOT send huge videos through the browser unnecessarily.
+
+Prefer:
+
+AutoClipper storage
+        ↓
+Backend
+        ↓
+Post for Me
+
+Ensure the media URL is publicly accessible to Post for Me if required.
+
+Read the official Post for Me media documentation before implementation.
+
+==================================================
+STEP 19 — PLATFORM REQUIREMENTS
+==================================================
+
+Support:
+
+Instagram
+TikTok
+YouTube
+
+Do not claim unsupported features.
+
+Instagram must follow Post for Me's current requirements.
+
+For Instagram, support appropriate Professional/Creator/Business account types where required.
+
+For TikTok, follow current Post for Me/TikTok authorization and publishing requirements.
+
+For YouTube, support YouTube video/Shorts publishing according to current Post for Me capabilities.
+
+==================================================
+STEP 20 — ERROR HANDLING
+==================================================
+
+Create user-friendly messages.
+
+Examples:
+
+"Instagram connection failed. Please try again."
+
+"Instagram authorization expired. Please reconnect."
+
+"TikTok publishing failed."
+
+"YouTube connection expired."
+
+"One selected account is no longer connected."
+
+"Video format is not supported."
+
+Never show raw API secrets or sensitive API responses.
+
+Log technical details only on the backend.
+
+==================================================
+STEP 21 — DUPLICATE POST PROTECTION
+==================================================
+
+Prevent accidental double posting.
+
+When Publish Now is clicked:
+
+- disable the button while submitting
+- prevent duplicate requests
+- use idempotency/deduplication if supported
+- store local publishing record
+
+Double-clicking Publish must NOT create two identical posts.
+
+==================================================
+STEP 22 — DISCONNECT
+==================================================
+
+Implement:
+
+POST /api/social/disconnect
+
+Before disconnecting:
+
+1. Authenticate user.
+2. Verify account ownership.
+3. Call official Post for Me disconnect endpoint/process.
+4. Update local database.
+
+Do not disconnect another user's account.
+
+==================================================
+STEP 23 — REMOVE OLD BUNDLE UI
+==================================================
+
+Remove all Bundle Social UI.
+
+Replace labels such as:
+
+Bundle
+Bundle Social
+Connect via Bundle
+
+with:
+
+Social Accounts
+Connect Instagram
+Connect TikTok
+Connect YouTube
+
+The user should never see Bundle Social anywhere in AutoClipper.
+
+==================================================
+STEP 24 — ENVIRONMENT VARIABLES
+==================================================
+
+Use:
+
+POSTFORME_API_KEY
+
+Do not put the real value into source code.
+
+Update .env.example:
+
+POSTFORME_API_KEY=
+
+Use Replit Secrets for the real value.
+
+==================================================
+STEP 25 — TESTING
+==================================================
+
+After implementation test:
+
+TEST 1:
+Connect Instagram account #1.
+
+TEST 2:
+Connect SECOND Instagram account.
+
+The first account must remain connected.
+
+TEST 3:
+Connect THIRD Instagram account.
+
+TEST 4:
+Connect TikTok account.
+
+TEST 5:
+Connect YouTube channel.
+
+TEST 6:
+Refresh browser.
+
+All accounts must remain visible.
+
+TEST 7:
+Publish only to Instagram #2.
+
+Verify only Instagram #2 is targeted.
+
+TEST 8:
+Publish to:
+
+Instagram #1
+Instagram #3
+TikTok #1
+YouTube #1
+
+Verify all selected accounts are targeted.
+
+TEST 9:
+Schedule a post.
+
+Verify it appears in Content Calendar.
+
+TEST 10:
+Disconnect Instagram #2.
+
+Verify Instagram #1 and #3 remain connected.
+
+TEST 11:
+Create another AutoClipper user.
+
+Verify the second user cannot see the first user's accounts.
+
+TEST 12:
+Attempt to submit another user's social account ID manually.
+
+The backend MUST reject it.
+
+TEST 13:
+Test OAuth cancellation.
+
+TEST 14:
+Test OAuth failure.
+
+TEST 15:
+Test webhook.
+
+==================================================
+STEP 26 — CALLBACK URL REPORT
+==================================================
+
+THIS IS REQUIRED BEFORE FINAL COMPLETION.
+
+After inspecting the Replit deployment, tell me:
+
+1. Current public AutoClipper URL
+2. Exact Post for Me Project Redirect URL I should paste into the dashboard
+3. Exact callback route implemented
+4. Whether HTTPS is enabled
+5. Whether the callback is publicly accessible
+6. Whether I need to change anything in Replit
+
+Example format:
+
+PUBLIC APP URL:
+https://example.com
+
+POST FOR ME PROJECT REDIRECT URL:
+https://example.com/auth/postforme/callback
+
+CALLBACK ROUTE:
+GET /auth/postforme/callback
+
+HTTPS:
+YES
+
+Do NOT invent the example.
+
+Give me the REAL URL from the actual project.
+
+==================================================
+FINAL REQUIREMENT
+==================================================
+
+I will only provide:
+
+POSTFORME_API_KEY
+
+Everything else should be implemented in the AutoClipper application.
+
+I want REAL production functionality.
+
+Not mock data.
+Not demo buttons.
+Not fake OAuth.
+Not placeholder publishing.
+
+The final system must support:
+
+One user
+→ multiple Instagram accounts
+→ multiple TikTok accounts
+→ multiple YouTube channels
+→ account selection
+→ Publish Now
+→ Schedule
+→ publishing status
+→ disconnect
+→ webhook updates
+→ strict user isolation
+
+IMPORTANT:
+
+Before saying "DONE", verify the implementation against the CURRENT official Post for Me documentation.
+
+If something cannot be implemented because Post for Me or Instagram/TikTok/YouTube imposes a platform restriction, clearly tell me exactly what the restriction is.
+
+DO NOT invent a workaround that violates platform rules.

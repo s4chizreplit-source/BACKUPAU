@@ -1,0 +1,69 @@
+The deployed app at clipai-sourcezip.replit.app shows "ffprobe: not found" error. This works in dev preview but fails in production because the nix store path is not in PATH during deployment.
+
+Fix it permanently for both dev and production:
+
+STEP 1 — Open artifacts/api-server/src/routes/videoTools.ts
+
+STEP 2 — Replace the ffmpeg/ffprobe path detection with this robust version that works in both dev and production:
+
+import { execSync } from 'child_process';
+
+function findBinary(name: string): string {
+  // Try which first
+  try {
+    const r = execSync(`which ${name} 2>/dev/null`, { encoding: 'utf8' }).trim();
+    if (r) return r;
+  } catch {}
+
+  // Search entire nix store
+  try {
+    const r = execSync(
+      `find /nix/store -name "${name}" -type f 2>/dev/null | grep "/bin/${name}$" | head -1`,
+      { encoding: 'utf8', timeout: 10000 }
+    ).trim();
+    if (r) return r;
+  } catch {}
+
+  // Common fallback paths
+  const fallbacks = [
+    `/usr/bin/${name}`,
+    `/usr/local/bin/${name}`,
+    `/bin/${name}`,
+  ];
+  for (const p of fallbacks) {
+    try {
+      execSync(`test -f ${p}`, { encoding: 'utf8' });
+      return p;
+    } catch {}
+  }
+
+  return name;
+}
+
+const FFMPEG_PATH = findBinary('ffmpeg');
+const FFPROBE_PATH = findBinary('ffprobe');
+console.log('[ClipAI] ffmpeg:', FFMPEG_PATH);
+console.log('[ClipAI] ffprobe:', FFPROBE_PATH);
+
+STEP 3 — Find every place in videoTools.ts where ffprobe or ffmpeg is called as a string command. Replace:
+  'ffprobe'  →  FFPROBE_PATH
+  'ffmpeg'   →  FFMPEG_PATH
+This includes spawn(), spawnSync(), exec(), execSync() calls.
+
+STEP 4 — Open artifacts/api-server/package.json and confirm the start script builds and runs correctly for production.
+
+STEP 5 — Open the Deployment settings in Replit and make sure the build command includes:
+  pnpm --filter @workspace/api-server run build
+
+And run command is:
+  pnpm --filter @workspace/api-server run start
+
+STEP 6 — Redeploy the app.
+
+STEP 7 — After deploy, check production logs. You should see:
+  [ClipAI] ffmpeg: /nix/store/.../bin/ffmpeg
+  [ClipAI] ffprobe: /nix/store/.../bin/ffprobe
+
+If logs show ffmpeg: ffmpeg (just the name, no path found), then run in shell:
+  find /nix/store -name "ffprobe" -type f | head -5
+And hardcode that exact path as the default fallback in the findBinary function.

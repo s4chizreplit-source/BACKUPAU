@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Keep private and transactional routes out of crawl queues.
+Disallow: /api/
+Disallow: /admin
+Disallow: /account
+Disallow: /pay/
+
+Sitemap: https://autocliper.pro/sitemap.xml

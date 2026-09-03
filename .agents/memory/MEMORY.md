@@ -1,0 +1,31 @@
+- [Railway deployment config](railway-deploy.md) — railway.toml + nixpacks.toml added; yt-dlp installs to /usr/local/bin in build step (no YTDLP_PATH env needed on Railway).
+- [Object Storage attachment](object-storage-fix.md) — sidecar may return an empty bucket ID; imported projects must attach a reachable bucket in App Storage.
+- [Long-video clip pipeline](clip-section-download.md) — section downloads not full video; npm ffmpeg-static segfaults (Nix ffmpeg); YTDLP_PROXY YouTube-only gate + cred-scrubbing execYtdlp.
+- [Kick clipping](kick-live-clipping.md) — browser resolves IVS m3u8 (CORS open) and sends strict-allowlisted kickSrc hint; server curl-only fallback; yt-dlp kick pages dead — use IVS playlist.
+- [GitHub remote](github-remote.md) — repo is thedevlovable/autocliper, now PUBLIC (VPS installer curls raw); post-commit hook auto-pushes; verify with ls-remote after commits.
+- [Hostinger VPS hosting](vps-hosting.md) — app self-hosted on user's VPS via one-shot installer; curl|bash eats read prompts (use /dev/tty); prod users/credits migrated 2026-08-01, clip files not.
+- [Autoscale job-store mirror](autoscale-job-store.md) — /tmp job records are per-instance; mirror to Object Storage with ORDERED per-job uploads or "Lost track of this job" returns; small prod disks need low free-disk guards.
+- [Zyla YouTube downloader](zyla-downloader.md) — one paid start per video+format; timeout is caller state (resurrectable) + finish-watcher salvages starts; inflight deletes identity-guarded; failure notes drive error text.
+- [Instagram viewer (Zyla IG API)](instagram-viewer.md) — IG key split (never overwrite YT key); lists page ~12 via nextCursor= (cursor= repeats page 1); details resolve ONLY by shortcode URL — numeric id = empty 200.
+- [Manual billing & credits](manual-billing-credits.md) — admin approval calls the same grant fns Stripe webhooks will; reserve credits before paid work; pg NUMERIC arrives as string.
+- [Device-upload sources](device-uploads.md) — big uploads must be chunked (proxy kills single big requests); mirror each chunk+meta to Object Storage before ack so autoscale instances can hand off.
+- [Clip retention & schema boot](clip-retention.md) — clips permanent (expiresMs null); history-delete reclaims files; cap eviction skips permanent; schema self-heals at boot (deploys never ran db:init).
+- [Workspace env quirks](env-quirks.md) — VM deploys carry REPLIT_DEV_DOMAIN → set PUBLIC_APP_URL or prod mints dev-domain URLs; prod SQL read-only; gate test-only code on VITEST; heredocs split && chains.
+- [Subtitle burn pipeline](subtitle-burn.md) — burns from Deepgram STT on clip audio (YouTube timedtext 429s datacenter IPs — never depend on it); never-throw + hard timeout; DejaVu = Latin-only, hi-Latn retry.
+- [ZapUPI UPI payments](upi-zapupi.md) — unsigned webhook = hint only; always re-fetch gateway status, row-locked idempotent grant; anomalies park as review, never grant.
+- [File download authorization](file-download-auth.md) — ownerId + verified history rows + job records; any clip_jobs writer must verify ids; shared cache ids = never deny on ownerId mismatch alone.
+- [Post for Me provider](postforme-provider.md) — 'processed' ≠ success; empty results ≠ evidence; YT-native publish_at (private upload) = success ≠ public until slot; Drive media via signed relay.
+- [Clip post idempotency](clip-post-idempotency.md) — claim-before-post markers; release only on definite 4xx; ambiguous → unknown + recover by external id; sweeps must be conditional deletes.
+- [Auto-Pilot campaigns](autopilot-campaigns.md) — materializer races: disable-first; never reset last_planned_date; IG sources: durable ig: refs + HMAC relay, daily rescan front-insert, NEVER 'exhausted'.
+- [TikTok Auto-Pilot source](tiktok-autopilot.md) — public profiles are polled; persist stable video IDs, ignore photos, refresh CDN media at handoff, and keep live profiles unexhausted.
+- [Clip-link campaigns](clip-link-campaigns.md) — job starts before campaign row commits: persist forCampaign flag to suppress instant auto-post; verify job ownership at create; GET reconciler heals.
+- [Shorts vertical padding](shorts-vertical-pad.md) — YT Shorts = ≤3min + height≥width (no API flag); campaign handoff auto-pads wide videos onto blurred 9:16 canvas; server fetches need per-hop SSRF checks.
+- [Face-follow reframe](clip-face-reframe.md) — UltraFace ONNX in-repo drives crop x-expr inside the ONE encode pass; never-throw → center-crop fallback; old mediapipe path was dead code.
+- [Prompt-guided clip selection](prompt-clip-selection.md) — gate on Gemini key BEFORE transcript spend; prompt hash in cache key; dev lacks GEMINI key (VPS has it) → only fallback path testable in dev.
+- [YouTube quality enforcement](youtube-quality-enforcement.md) — ffprobe-verify every source (min(w,h), never height); no bare /best tail; [height<=q] alone breaks portrait/Shorts; null probe ≠ downgrade.
+- [Concurrency & fair encode queue](concurrency-scaling.md) — caps derive from CPU+RAM at boot; round-robin per job beats FIFO; guard disk at download start; limiters must survive sync throws.
+- [Durable job coordination](durable-job-coordination.md) — async clip state and paid Zyla starts use PostgreSQL leases; terminal writes must remain lease-token CAS operations.
+- [Campaign-rules compliance](campaign-requirements.md) — Whop rule sheets enforced deterministically (never LLM); trim→recheck captions; near-window rule gating; end-card never costs a clip.
+- [Posting credits](posting-credits.md) — non-clip drain posts charge 50 at hand-off (zero-marker atomic tx); ambiguous terminal rows verify provider before refund; clip media posts free.
+- [Dark UI readability](dark-ui-readability.md) — premium dark styling must keep labels, helpers, placeholders, and disabled states clearly legible.
+- [SEO route rendering](seo-route-rendering.md) — sitemap pages need dedicated server-delivered HTML; SPA head updates alone cannot make route canonicals or content crawlable.

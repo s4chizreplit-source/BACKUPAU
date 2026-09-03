@@ -1,0 +1,38 @@
+Integrate the ZylaLabs "YouTube Download and Info API" (API #11016) end-to-end as the download engine for this site's Downloader feature. I have a paid subscription. Follow this spec EXACTLY — it is based on live-verified behavior, do not "improve" it from your own assumptions.
+
+1) SECRET
+- Ask me for ZYLA_API_KEY via the secure secrets form. Server-side only. Never put it in client code, URLs, or logs.
+
+2) API CONTRACT (verified working July 2026)
+- Start a job (THIS is the only call that needs auth, and the only one that consumes my monthly quota):
+  GET https://zylalabs.com/api/11016/youtube+download+and+info+api/20761/download?url=<YOUTUBE_URL>&format=<FMT>
+  Header: authorization: Bearer <ZYLA_API_KEY>
+  FMT values: "360" "480" "720" "1080" "1440" "2160" (video WITH audio, muxed) or "mp3" (audio only).
+  "2160" returns REAL 4K (av1+opus 3840x2160) — verified. "1440" returns real 2K.
+  Response: { "success": true, "id": "...", "image": "...", "progress_url": "https://..." }
+- Poll progress_url every 4-5s (no auth needed, free):
+  Response: { "success":1, "progress":0..1000, "text":"...", "download_url"?, "title"?, "duration"? }
+  Done when download_url appears. Treat text matching /error|fail/i as failure. Give up after 240s.
+- download_url needs no auth; it 302-redirects to a presigned Cloudflare R2 file (valid ~7 days, supports range/resume, proper filename via content-disposition).
+
+3) BACKEND (this project's server)
+- POST/GET /api/yt/start?url=&format= → validates input, calls the Zyla start endpoint server-side, returns { jobId }.
+- GET /api/yt/progress?jobId= → proxies the poll, returns { progress (0-100), done, downloadUrl?, title? }.
+- GET /api/yt/download?url=&format= → convenience route: start + poll server-side, then 302 the browser to download_url.
+- NEVER pipe the file bytes through this server — always redirect the browser to download_url (zero egress for us; R2 is fast).
+- Validate: accept ONLY YouTube URLs/IDs (youtube.com / youtu.be / shorts / 11-char id). Reject everything else. Add basic per-IP rate limiting.
+- CACHE url+format → download_url for 6 days (memory or DB). A repeat download must NOT start a new Zyla job — every start call costs quota; polls and downloads are free.
+
+4) FRONTEND (existing Downloader section)
+- Quality picker: 360p, 480p, 720p, 1080p, 1440p (2K), 2160p (4K), MP3.
+- On click: call /api/yt/start, then poll /api/yt/progress and show a real progress bar (Zyla jobs take ~10s for small videos, up to ~2-3 min for big 4K), then trigger the browser download from downloadUrl.
+- Show clear errors (invalid link, video unavailable, timeout).
+
+5) OPTIONAL FALLBACK (keep downloads alive if Zyla errors)
+- If the Zyla job fails, fall back to redirecting to:
+  https://yt-downloader-rose-six.vercel.app/download?url=<YT_URL>&quality=<360|480|720|1080|1440|2160>
+
+6) TEST BEFORE DONE (use https://www.youtube.com/watch?v=LXb3EKWsInQ)
+- 720, 1080 and 2160 downloads: file must contain BOTH video and audio (2160 must be 3840x2160).
+- mp3 download works. Repeat download of the same url+format must hit the cache (no second Zyla start).
+- Confirm ZYLA_API_KEY appears nowhere in the client bundle, network tab, or logs.

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.tsbuildinfo
+*.tsbuildinfo
+zip_extracted/
+# Downloaded yt-dlp binary (fetched at build time, not committed)
+bin/
+bin/yt-dlp
+
+# One-off data migration dumps served briefly from the dev preview (PII - never commit)
+artifacts/ytdlp-ui/public/migration-*.sql

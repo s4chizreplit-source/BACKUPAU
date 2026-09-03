@@ -1,0 +1,18 @@
+# AutoCliper
+
+> Turn long YouTube, Kick, Twitch, Drive, and Dropbox videos into short viral clips using AI.
+
+AutoCliper uses AI to automatically find the best moments in long videos and clip them into short-form content ready for TikTok, YouTube Shorts, and Instagram Reels.
+
+## Key pages
+- [Home](https://autocliper.pro/)
+- [Pricing](https://autocliper.pro/pricing)
+- [Terms](https://autocliper.pro/terms)
+- [Privacy](https://autocliper.pro/privacy)
+
+## Features
+- AI-powered clip selection (loudest, most engaging moments)
+- Supports YouTube, Kick, Twitch, Google Drive, Dropbox
+- Up to 10 clips per video
+- Download all clips as ZIP
+- Works for Shorts, Reels, and TikTok formats

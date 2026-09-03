@@ -1,0 +1,67 @@
+Build an AI prompt-guided video clipper with these EXACT behaviors.
+
+## Core flow
+- Input: a video URL + clip count N + clip duration L (seconds) + an OPTIONAL text prompt.
+- Output: N clips of length L each.
+- The prompt picks WHERE clips come from; the user's chosen duration picks HOW LONG each clip is.
+- Empty prompt = automatic "best moments" selection. Non-empty prompt = AI moment matching.
+
+## Automatic selection (no prompt)
+- Scan the full audio with ffmpeg for loudness (RMS energy over sliding windows), pick the N
+  highest-energy non-overlapping windows, then sort them chronologically.
+- Keep a small intro/outro margin (clips shouldn't start at 0:00), and keep the gap between
+  picks >= clip length. This makes music videos clip at their hooks and podcasts at heated moments.
+
+## Prompt-guided selection (order matters — it protects money)
+1. FIRST check the Gemini API key is configured. If not, fall back to automatic selection WITH a
+   visible note — never spend on transcripts when the matcher can't run.
+2. Get a timestamped transcript:
+   - Try free YouTube captions first. WARNING: YouTube timedtext 429s datacenter IPs — treat
+     captions as best-effort, never a hard dependency.
+   - Otherwise run Deepgram prerecorded speech-to-text with diarize: true on the video audio
+     (extract mono 16 kHz Opus @ ~24 kbps, so 90 minutes is only ~16 MB).
+   - Build lines like "[12:34] S1: text…" — prefix speaker labels (S1:/S2:) at voice changes when
+     STT provides them. Captions have NO speaker labels; that's a known limit.
+3. Send the transcript to Gemini (chunk long transcripts, merge results). Ask for up to N moments
+   matching the user's prompt, strict JSON out: [{start, end, reason}].
+4. Put HARD RULES in the model prompt:
+   - Time windows are strict: "first 15 minutes" = every match must START within 0:00-15:00.
+   - Named people/topics need evidence (speaker labels, else textual evidence) — no evidence = EXCLUDE.
+   - NEVER pad with filler moments. Fewer honest matches beat N padded ones.
+5. Zero-match honesty — two different cases, never mix them:
+   - Matcher COULDN'T RUN (all API calls failed / bad key): fall back to automatic selection with a
+     visible note ("AI matching was unavailable — clips were picked automatically").
+   - Matcher RAN and matched NOTHING: FAIL the job with a friendly message ("No moments in this
+     video matched your prompt, so no clips were made") and charge nothing. NEVER silently fall
+     back to automatic — users read that as "it ignored my prompt".
+   - Partial (2 of 4 matched): deliver 2 with a note saying only 2 matched.
+6. Placement for prompt picks: NO intro/outro margins (cold opens are deliberate). Clamp each pick
+   to [0, videoDuration - L], keep gaps >= L, center short matches inside their L-second window.
+7. Return promptApplied (true/false) on the result and a per-clip "reason" shown in the UI.
+8. Hash the prompt text into the result cache key — different prompts must never share cached clips.
+
+## Cutting
+- Long videos: do NOT download the whole file — use yt-dlp --download-sections per pick, then one
+  ffmpeg encode per clip.
+- Use SYSTEM ffmpeg (on Replit/Nix the npm ffmpeg-static binary segfaults — install via the
+  platform package tool).
+- Verify real source quality with ffprobe using min(width,height) — never height alone, portrait
+  videos break otherwise.
+
+## Secrets to request
+- GEMINI_API_KEY (matching; use the current flash model, env-overridable — a 404 usually means the
+  model was retired for new keys, so bump the default)
+- DEEPGRAM_API_KEY (speech-to-text with diarization)
+
+## Acceptance tests before saying done
+1. No prompt → N chronological clips at loud/energetic moments.
+2. Prompt "only moments about X from the first 15 minutes" → every clip starts inside 0-15 min,
+   reasons reference X.
+3. Prompt about something NOT in the video → job fails with the friendly "no moments matched"
+   message; nothing is created or charged.
+4. Remove the Gemini key → job still completes via automatic selection with the visible note.
+5. A video without captions → STT path kicks in and prompt matching still works.
+
+Optional add-on: merge all matched clips into ONE "Full edit" video (ffmpeg concat demuxer,
+stream-copy first, re-encode fallback; merge failure ships the individual clips, never fails the
+job) and deliver only that single merged video for prompt jobs.
