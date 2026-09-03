@@ -7,7 +7,7 @@ export default function Privacy() {
         <p>
           AutoCliper (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) is committed to protecting your personal
           information. This Privacy Policy explains what data we collect, how we use it, and
-          your rights regarding your data when you use autocliper.pro.
+          your rights regarding your data when you use autocliper.com.
         </p>
         <p>
           By creating an account or using our service, you agree to the practices described in
@@ -112,7 +112,7 @@ export default function Privacy() {
           <li><strong className="text-white/80">Objection</strong> — object to any processing you believe is not in your interest.</li>
         </ul>
         <p className="mt-3">
-          To exercise any of these rights, email us at <a href="mailto:support@autocliper.pro" className="text-[#D1FE17] hover:underline">support@autocliper.pro</a>.
+          To exercise any of these rights, email us at <a href="mailto:support@autocliper.com" className="text-[#D1FE17] hover:underline">support@autocliper.com</a>.
           We will respond within 15 business days.
         </p>
       </LegalSection>
@@ -138,8 +138,8 @@ export default function Privacy() {
           For any privacy questions or data requests, contact us at:
         </p>
         <ul className="list-disc pl-5 space-y-1 mt-2">
-          <li>Email: <a href="mailto:support@autocliper.pro" className="text-[#D1FE17] hover:underline">support@autocliper.pro</a></li>
-          <li>Website: <a href="/contact" className="text-[#D1FE17] hover:underline">autocliper.pro/contact</a></li>
+          <li>Email: <a href="mailto:support@autocliper.com" className="text-[#D1FE17] hover:underline">support@autocliper.com</a></li>
+          <li>Website: <a href="/contact" className="text-[#D1FE17] hover:underline">autocliper.com/contact</a></li>
         </ul>
       </LegalSection>
     </LegalLayout>

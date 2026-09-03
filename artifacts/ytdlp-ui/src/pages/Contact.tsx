@@ -64,28 +64,28 @@ export default function Contact() {
             icon={HelpCircle}
             title="General support"
             desc="Questions about how AutoCliper works, clip quality, formats, or getting started."
-            email="support@autocliper.pro"
+            email="support@autocliper.com"
             subject="Support Request"
           />
           <TopicCard
             icon={CreditCard}
             title="Billing & payments"
             desc="Subscription charges, refund requests, credit issues, or payment not reflecting."
-            email="support@autocliper.pro"
+            email="support@autocliper.com"
             subject="Billing Enquiry"
           />
           <TopicCard
             icon={Shield}
             title="Privacy & data requests"
             desc="Request a copy of your data, account deletion, or any privacy-related concern."
-            email="support@autocliper.pro"
+            email="support@autocliper.com"
             subject="Privacy / Data Request"
           />
           <TopicCard
             icon={MessageSquare}
             title="Business & partnerships"
             desc="Bulk plans, white-label enquiries, API access, or partnership opportunities."
-            email="support@autocliper.pro"
+            email="support@autocliper.com"
             subject="Business Enquiry"
           />
         </div>
@@ -96,10 +96,10 @@ export default function Contact() {
           <p className="text-white font-black text-lg">Email us directly</p>
           <p className="text-white/45 text-sm mt-1">For all enquiries, one inbox:</p>
           <a
-            href="mailto:support@autocliper.pro"
+            href="mailto:support@autocliper.com"
             className="inline-block mt-3 text-[#D1FE17] font-black text-xl hover:underline"
           >
-            support@autocliper.pro
+            support@autocliper.com
           </a>
         </div>
 

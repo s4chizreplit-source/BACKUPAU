@@ -1,6 +1,6 @@
 # AutoCliper 🎬
 
-**An educational, open-source final-year academic project** that demonstrates automated video processing: it takes a publicly available video link and generates short vertical clips (Shorts/Reels format) from its most engaging moments, using open-source tools like `yt-dlp` and `FFmpeg`.
+**An educational, open-source final-year academic project** that demonstrates automated video processing: it accepts a user-supplied video URL or file source and generates short vertical clips (Shorts/Reels format) from its most engaging moments, using open-source tools like `yt-dlp` and `FFmpeg`.
 
 ## 🤖 Host this anywhere with an AI agent
 
@@ -16,25 +16,30 @@ deployment commands, and the platform gotchas.
 
 ---
 
-## 🎓 Educational Purpose Disclaimer
+## 🎓 Educational Purpose & Responsible Use
 
 > **This repository is a student final-year (capstone) project, built strictly for educational and research purposes.**
 >
 > - It exists to demonstrate full-stack engineering concepts: REST API design, background job queues, video stream processing, HLS handling, transcript analysis, and cloud deployment.
-> - It is **not** a commercial piracy tool, and it does **not** host, store, re-upload, or distribute any copyrighted content.
-> - It is built on the same widely used open-source foundations (`yt-dlp`, `FFmpeg`) that power thousands of legitimate research and archival projects on GitHub.
-> - No paywalled, DRM-protected, or private content is accessed. The software only processes content that is already publicly reachable, exactly like a browser can.
+> - It is **not** a commercial piracy tool, a content repository, or a DRM-circumvention tool.
+> - It is built on widely used open-source foundations (`yt-dlp`, `FFmpeg`) for legitimate software research and media-processing education.
+> - The operator must supply content they own, have permission to use, or are otherwise legally allowed to process.
+> - Optional social publishing is user-controlled; the project does not grant permission to repost someone else’s content.
 
 ## ⚖️ Legal & Acceptable Use
 
-This software is provided for **personal, educational, and fair-use purposes only**. By using it, you agree that:
+This software is provided for **personal, educational, and lawful research purposes only**. By using it, you agree that:
 
 1. **You only process content you have the right to use** — your own videos, videos you have explicit permission for, or content under licenses that allow it (e.g. Creative Commons).
 2. **You are responsible for complying** with the Terms of Service of any platform (YouTube, Twitch, Kick, etc.) and with the copyright laws of your country.
-3. **Clips are generated locally and temporarily** for the user who requests them — nothing is republished or redistributed by this project.
-4. **No DRM circumvention** — the project does not and will not bypass any technical protection measures.
+3. **You do not use the project for mass scraping, spam, harassment, impersonation, or unauthorized redistribution.**
+4. **You do not bypass authentication, paywalls, DRM, access controls, rate limits, or other technical protections.**
+5. **You review every clip before publishing it.** Any connected social-account publishing is an explicit operator action and remains the operator’s responsibility.
+6. **You review storage and retention settings** before hosting the project for other users, especially when processing uploaded or copyrighted material.
 
-The authors and contributors **do not endorse or encourage copyright infringement** in any form. If you are a rights holder and believe this project is being misused, please open a GitHub issue and we will respond promptly.
+The authors and contributors **do not endorse or encourage copyright infringement** in any form. If you are a rights holder and believe this project is being misused, please open a GitHub issue with the relevant details so the maintainers can review it.
+
+This documentation describes the project’s intended use; it does not guarantee that GitHub or any third-party platform will take no action. Users and operators must follow the applicable platform rules.
 
 ## ✨ What It Demonstrates (Features)
 
@@ -54,7 +59,7 @@ The authors and contributors **do not endorse or encourage copyright infringemen
 | Video | yt-dlp + FFmpeg (open-source) |
 | Auth | Clerk |
 | Storage | Object storage for generated clips (auto-expiring) |
-| Testing | Vitest — 126+ unit tests |
+| Testing | Vitest — API and UI unit tests |
 
 ## 🚀 Running Locally
 
@@ -71,7 +76,7 @@ Requires `yt-dlp` and `FFmpeg` binaries available on the system path (both open-
 ## 🧪 Tests
 
 ```bash
-pnpm --filter @workspace/api-server run test        # 126+ tests
+pnpm --filter @workspace/api-server run test        # API tests
 pnpm --filter @workspace/api-server run typecheck
 ```
 
