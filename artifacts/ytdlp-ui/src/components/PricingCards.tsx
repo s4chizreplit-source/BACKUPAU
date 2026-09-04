@@ -92,7 +92,7 @@ export default function PricingCards({ initialInterval = 'yearly', signupNext = 
               <p className="text-white/55 text-sm mt-1">For agencies &amp; big channels</p>
               <div className="mt-5 mb-1 text-5xl font-black">Custom</div>
               <p className="text-xs text-white/45 mb-6">tailored to your volume</p>
-              <a href="mailto:support@autocliper.pro?subject=AutoCliper%20Business%20plan" className="w-full py-3 rounded-xl font-black text-sm text-center bg-white/10 border border-white/15 text-white hover:bg-white/15">Contact us</a>
+              <a href="mailto:support@autocliper.com?subject=AutoCliper%20Business%20plan" className="w-full py-3 rounded-xl font-black text-sm text-center bg-white/10 border border-white/15 text-white hover:bg-white/15">Contact us</a>
             </div>
           </div>
         </>

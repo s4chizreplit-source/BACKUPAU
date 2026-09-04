@@ -5,7 +5,7 @@
 #     cd /opt/autocliper && git pull && bash deploy/setup-pro-domain.sh
 #
 # What it does:
-#   1. Updates Caddyfile to autocliper.pro (fixes SSL + routing)
+#   1. Updates Caddyfile to autocliper.com (fixes SSL + routing)
 #   2. Adds/updates required env vars in /etc/autocliper.env
 #   3. Pulls latest code + rebuilds + restarts via update.sh
 set -euo pipefail
@@ -13,7 +13,7 @@ set -euo pipefail
 ENV_FILE=/etc/autocliper.env
 CADDY_FILE=/etc/caddy/Caddyfile
 APP_DIR=/opt/autocliper
-DOMAIN=autocliper.pro
+DOMAIN=autocliper.com
 
 echo ""
 echo "══════════════════════════════════════════════════════════"

@@ -64,7 +64,7 @@ export function newUpiOrderId(): string {
 export function appBaseUrl(): string {
   const configured = (process.env.PUBLIC_APP_URL ?? "").trim().replace(/\/$/, "");
   if (configured) return configured;
-  if (process.env.NODE_ENV === "production") return "https://autocliper.pro";
+  if (process.env.NODE_ENV === "production") return "https://autocliper.com";
   const dev = (process.env.REPLIT_DEV_DOMAIN ?? "").trim();
   if (dev) return `https://${dev}`;
   return "http://localhost:5000";

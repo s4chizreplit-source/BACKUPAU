@@ -2,7 +2,7 @@
 - [Object Storage attachment](object-storage-fix.md) — sidecar may return an empty bucket ID; imported projects must attach a reachable bucket in App Storage.
 - [Long-video clip pipeline](clip-section-download.md) — section downloads not full video; npm ffmpeg-static segfaults (Nix ffmpeg); YTDLP_PROXY YouTube-only gate + cred-scrubbing execYtdlp.
 - [Kick clipping](kick-live-clipping.md) — browser resolves IVS m3u8 (CORS open) and sends strict-allowlisted kickSrc hint; server curl-only fallback; yt-dlp kick pages dead — use IVS playlist.
-- [GitHub remote](github-remote.md) — repo is thedevlovable/autocliper, now PUBLIC (VPS installer curls raw); post-commit hook auto-pushes; verify with ls-remote after commits.
+- [GitHub backup workflow](github-remote.md) — BACKUPAU main is the clean source baseline; local commits automatically open PRs without storing credentials in git.
 - [Hostinger VPS hosting](vps-hosting.md) — app self-hosted on user's VPS via one-shot installer; curl|bash eats read prompts (use /dev/tty); prod users/credits migrated 2026-08-01, clip files not.
 - [Autoscale job-store mirror](autoscale-job-store.md) — /tmp job records are per-instance; mirror to Object Storage with ORDERED per-job uploads or "Lost track of this job" returns; small prod disks need low free-disk guards.
 - [Zyla YouTube downloader](zyla-downloader.md) — one paid start per video+format; timeout is caller state (resurrectable) + finish-watcher salvages starts; inflight deletes identity-guarded; failure notes drive error text.

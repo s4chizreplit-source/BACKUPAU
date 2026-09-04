@@ -35,14 +35,14 @@ describe.skipIf(!HAS_DB)("ZapUPI INR plans and topups", () => {
     const agent = request.agent(app); await signup(agent);
     let createFields: Record<string, string> = {};
     const previous = process.env.PUBLIC_APP_URL;
-    process.env.PUBLIC_APP_URL = "https://autocliper.pro";
+    process.env.PUBLIC_APP_URL = "https://autocliper.com";
     try {
       mock(undefined, (fields) => { createFields = fields; });
       const r = await agent.post("/api/pay/upi/order").send({ kind: "plan", plan: "30", interval: "monthly" });
       expect(r.status).toBe(200);
-      expect(createFields.success_url).toBe("https://autocliper.pro/pay/upi/return");
-      expect(createFields.failed_url).toBe("https://autocliper.pro/pay/upi/return");
-      expect(createFields.timeout_url).toBe("https://autocliper.pro/pay/upi/return");
+      expect(createFields.success_url).toBe("https://autocliper.com/pay/upi/return");
+      expect(createFields.failed_url).toBe("https://autocliper.com/pay/upi/return");
+      expect(createFields.timeout_url).toBe("https://autocliper.com/pay/upi/return");
       expect(createFields.redirect_url).toBeUndefined();
     } finally {
       if (previous == null) delete process.env.PUBLIC_APP_URL;
