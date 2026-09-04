@@ -2207,6 +2207,11 @@ export default function ClipperPage() {
   const [aiPrompt, setAiPrompt] = useState<string>('');
 
   useEffect(() => {
+    if (window.location.hash !== '#refer') return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById('refer')?.scrollIntoView({ block: 'start' });
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
@@ -2656,9 +2661,9 @@ export default function ClipperPage() {
               <Link href="/history" className="px-4 py-1.5 rounded-full hover:text-white hover:bg-white/[0.06] transition-all duration-150">My videos</Link>
               <Link href="/autopilot" className="px-4 py-1.5 rounded-full hover:text-white hover:bg-white/[0.06] transition-all duration-150">Auto-Pilot</Link>
               <Link href="/social" className="px-4 py-1.5 rounded-full hover:text-white hover:bg-white/[0.06] transition-all duration-150">Social</Link>
-              <a href="#refer" className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[#D1FE17]/80 hover:text-[#D1FE17] hover:bg-[#D1FE17]/8 transition-all duration-150">
+              <Link href="/account#refer" className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[#D1FE17]/80 hover:text-[#D1FE17] hover:bg-[#D1FE17]/8 transition-all duration-150">
                 <Gift className="w-3.5 h-3.5" />Refer
-              </a>
+              </Link>
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-0.5 px-1.5 py-1.5 rounded-full border border-white/[0.07] bg-white/[0.03] text-sm font-semibold text-white/50">
@@ -2783,8 +2788,8 @@ export default function ClipperPage() {
               )}
 
               {/* Refer CTA */}
-              <a
-                href="#refer"
+              <Link
+                href={isSignedIn ? '/account#refer' : '/#refer'}
                 onClick={() => setMobileMenuOpen(false)}
                 className="group flex items-center gap-3 px-2.5 py-2.5 rounded-xl hover:bg-[#D1FE17]/[0.07] transition-colors"
               >
@@ -2793,7 +2798,7 @@ export default function ClipperPage() {
                 </span>
                 <span className="text-sm font-bold text-[#D1FE17] flex-1">Refer &amp; earn</span>
                 <span className="text-[10px] font-black text-black bg-[#D1FE17] rounded-full px-1.5 py-0.5">Reward</span>
-              </a>
+              </Link>
             </div>
 
             {/* ── Auth footer ─────────────────────────────────────────────── */}
@@ -3747,7 +3752,7 @@ export default function ClipperPage() {
               No limit, refer as many friends as you like.
             </p>
             <Link
-              href={isSignedIn ? '/account' : '/signup'}
+              href={isSignedIn ? '/account#refer' : '/signup'}
               className="inline-flex items-center gap-2 bg-[#D1FE17] text-black font-black px-7 py-3.5 rounded-full hover:bg-[#c2ef0e] active:scale-95 transition-all mt-6"
             >
               <Gift className="w-4 h-4" />
