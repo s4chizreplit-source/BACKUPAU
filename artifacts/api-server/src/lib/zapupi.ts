@@ -26,6 +26,7 @@ import https from "node:https";
 import { pool } from "./db";
 import { grantSubscriptionTx, grantTopupTx, PLANS, type PlanId, type PlanInterval } from "./billing";
 import { logger } from "./logger";
+import { notifyTelegramAdmins } from "./telegram";
 
 // Fixed UPI prices in INR, as chosen by the founder (monthly plans only in v1).
 export const UPI_PLAN_PRICES_INR: Record<PlanId, Record<PlanInterval, number>> = {
@@ -433,7 +434,34 @@ export async function confirmZapupiOrder(orderId: string): Promise<ConfirmResult
          WHERE order_id = $1`,
         [orderId, st.txnId, st.utr, st.environment],
       );
+      const { rows: users } = await client.query<{ email: string }>(
+        `SELECT email FROM users WHERE id = $1`,
+        [row.user_id],
+      );
+      const userEmail = users[0]?.email ?? row.user_id;
       await client.query("COMMIT");
+      if (row.kind === "topup") {
+        const creditSummary = row.topup_cutting > 0
+          ? `${row.topup_cutting} cutting credits`
+          : `${row.topup_uploading} uploading credits`;
+        await notifyTelegramAdmins([
+          "✅ Credit top-up completed",
+          `User: ${userEmail}`,
+          `Credits: ${creditSummary}`,
+          `Amount: ₹${row.amount_inr}`,
+          `Order: ${orderId}`,
+          st.utr ? `UTR: ${st.utr}` : null,
+        ]);
+      } else {
+        await notifyTelegramAdmins([
+          "✅ Subscription purchased",
+          `User: ${userEmail}`,
+          `Plan: ${row.plan} Credits (${row.plan_interval})`,
+          `Amount: ₹${row.amount_inr}`,
+          `Order: ${orderId}`,
+          st.utr ? `UTR: ${st.utr}` : null,
+        ]);
+      }
       logger.info(
         { orderId, userId: row.user_id, plan: row.plan, amountInr: row.amount_inr },
         "zapupi payment confirmed — plan activated",

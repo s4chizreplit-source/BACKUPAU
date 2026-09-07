@@ -31,6 +31,7 @@ import {
 import { requireAdmin } from "../middlewares/sessionAuth";
 import { toPublicUpiOrder, type UpiOrderRow } from "../lib/zapupi";
 import { logger } from "../lib/logger";
+import { notifyTelegramAdmins } from "../lib/telegram";
 
 const router: IRouter = Router();
 
@@ -118,6 +119,15 @@ router.post("/admin/users/:id/credits", async (req, res): Promise<void> => {
       adminId: req.currentUser!.id,
       note,
     });
+    if (delta > 0) {
+      await notifyTelegramAdmins([
+        "✅ Credits added by admin",
+        `User: ${user.email}`,
+        `Credits: +${delta}`,
+        `Admin: ${req.currentUser!.email}`,
+        note ? `Note: ${note}` : null,
+      ]);
+    }
     res.json({ user: toPublicUser(user) });
   } catch (err) {
     const msg = (err as Error).message;
