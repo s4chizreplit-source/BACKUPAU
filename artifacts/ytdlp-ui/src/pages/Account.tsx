@@ -1,16 +1,15 @@
 /**
- * Account & billing — plan status, credit balances, pending billing requests
+ * Account & billing — plan status, credit balances, automatic UPI top-ups,
  * and recent credit activity for the signed-in user.
  */
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Zap, Loader2, LogOut, Clock, CreditCard, ArrowUpRight, User as UserIcon, Gift, Copy, Check, Upload } from 'lucide-react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { Zap, Loader2, LogOut, CreditCard, ArrowUpRight, User as UserIcon, Gift, Copy, Check, Upload } from 'lucide-react';
 import { AppHeader } from '../components/AppHeader';
 import { apiFetch, useAuth, type CreditBalance } from '../lib/auth';
 import { SITE_ORIGIN } from '../lib/site';
 import {
-  type BillingRequest,
   type Catalog,
   type LedgerEntry,
   type UpiOrder,
@@ -19,23 +18,7 @@ import {
   fmtInr,
   PLAN_NAMES,
   reasonLabel,
-  requestLabel,
 } from '../lib/billingTypes';
-
-const STATUS_STYLES: Record<string, string> = {
-  pending: 'bg-amber-400/10 text-amber-300 border-amber-400/25',
-  approved: 'bg-[#D1FE17]/10 text-[#D1FE17] border-[#D1FE17]/25',
-  rejected: 'bg-red-500/10 text-red-400 border-red-500/25',
-  cancelled: 'bg-white/5 text-white/40 border-white/10',
-};
-
-function StatusChip({ status }: { status: string }) {
-  return (
-    <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full border ${STATUS_STYLES[status] ?? STATUS_STYLES.cancelled}`}>
-      {status}
-    </span>
-  );
-}
 
 function TopupCard({
   title, icon, value, onChange, rate, quantity, available, busy, onBuy,
@@ -90,6 +73,15 @@ function ReferralSection() {
     queryKey: ['referral-me'],
     queryFn: () => apiFetch<ReferralInfo>('/referral/me'),
   });
+
+  useEffect(() => {
+    if (!data || window.location.hash !== '#refer') return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById('refer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [data]);
+
   if (!data) return null;
 
   const link = `${SITE_ORIGIN}/?ref=${data.code}`;
@@ -173,7 +165,6 @@ function ReferralSection() {
 export default function Account() {
   const { user, loading, logout, refresh } = useAuth();
   const [, setLocation] = useLocation();
-  const qc = useQueryClient();
   const [cuttingQuantity, setCuttingQuantity] = useState('10');
   const [uploadingQuantity, setUploadingQuantity] = useState('10');
 
@@ -184,11 +175,6 @@ export default function Account() {
     if (!loading && !user) setLocation('/login?next=/account');
   }, [loading, user, setLocation]);
 
-  const { data: reqData } = useQuery({
-    queryKey: ['billing-requests'],
-    queryFn: () => apiFetch<{ requests: BillingRequest[] }>('/billing/requests'),
-    enabled: !!user,
-  });
   const { data: ledgerData } = useQuery({
     queryKey: ['billing-ledger'],
     queryFn: () => apiFetch<{ entries: LedgerEntry[] }>('/billing/ledger'),
@@ -201,10 +187,6 @@ export default function Account() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const cancelReq = useMutation({
-    mutationFn: (id: number) => apiFetch(`/billing/requests/${id}/cancel`, { method: 'POST' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['billing-requests'] }),
-  });
   const topUp = useMutation({
     mutationFn: (value: { creditType: 'cutting' | 'uploading'; quantity: number }) =>
       apiFetch<UpiOrder>('/pay/upi/order', {
@@ -227,7 +209,6 @@ export default function Account() {
   }
   if (!user) return null;
 
-  const requests = (reqData?.requests ?? []).slice(0, 6);
   const entries = (ledgerData?.entries ?? []).slice(0, 12);
   const planActive = user.planStatus === 'active' && user.plan !== 'none' &&
     (!user.paidUntil || new Date(user.paidUntil).getTime() > Date.now());
@@ -318,38 +299,6 @@ export default function Account() {
           </div>
           {!upiAvailable && <p className="text-amber-200 text-xs mt-4">UPI top-ups are temporarily unavailable.</p>}
         </section>
-
-        {/* ── Requests ── */}
-        {requests.length > 0 && (
-          <section className="bg-[#1a1a1a] border border-white/10 rounded-3xl p-6">
-            <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Billing requests</p>
-            <p className="text-white/35 text-xs mb-4 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" /> We activate requests manually — usually within a few hours.
-            </p>
-            <div className="divide-y divide-white/5">
-              {requests.map(r => (
-                <div key={r.id} className="py-3 flex items-center justify-between gap-3 flex-wrap">
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold truncate">{requestLabel(r)}</p>
-                    <p className="text-white/35 text-xs mt-0.5">{fmtDateTime(r.created_at)}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <StatusChip status={r.status} />
-                    {r.status === 'pending' && (
-                      <button
-                        onClick={() => cancelReq.mutate(r.id)}
-                        disabled={cancelReq.isPending}
-                        className="text-xs text-white/40 hover:text-red-400 transition-colors disabled:opacity-50"
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
 
         {/* ── Activity ── */}
         <section className="bg-[#1a1a1a] border border-white/10 rounded-3xl p-6">

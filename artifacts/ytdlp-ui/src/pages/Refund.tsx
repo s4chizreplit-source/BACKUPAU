@@ -8,7 +8,7 @@ export default function Refund() {
           At AutoCliper, we want every customer to be satisfied. This policy explains when and
           how you can cancel a subscription, request a refund, or get credits returned for
           failed jobs. Please read it before making a purchase. If you have questions, email us
-          at <a href="mailto:support@autocliper.pro" className="text-[#D1FE17] hover:underline">support@autocliper.pro</a>.
+          at <a href="mailto:support@autocliper.com" className="text-[#D1FE17] hover:underline">support@autocliper.com</a>.
         </p>
       </LegalSection>
 
@@ -28,7 +28,7 @@ export default function Refund() {
       <LegalSection title="3. Subscription plans — cancellation">
         <p>
           You may cancel your Starter or Pro subscription at any time from your Account page or
-          by emailing support@autocliper.pro.
+          by emailing support@autocliper.com.
         </p>
         <ul className="list-disc pl-5 space-y-1 mt-2">
           <li>Cancellation takes effect at the <strong className="text-white/80">end of the current billing period</strong> — you retain full access and your monthly credits until then.</li>
@@ -41,7 +41,7 @@ export default function Refund() {
         <p>
           If you are charged for a renewal you did not intend, or if there is a billing error on
           our part, contact us within <strong className="text-white/80">7 days</strong> of the charge
-          at support@autocliper.pro with your registered email and payment reference. We will
+          at support@autocliper.com with your registered email and payment reference. We will
           investigate and, if the charge was in error, issue a full refund within
           <strong className="text-white/80"> 5–7 business days</strong>.
         </p>
@@ -69,7 +69,7 @@ export default function Refund() {
       <LegalSection title="6. How to request a refund">
         <p>To request a refund or report a billing issue:</p>
         <ol className="list-decimal pl-5 space-y-2 mt-2">
-          <li>Email <a href="mailto:support@autocliper.pro" className="text-[#D1FE17] hover:underline">support@autocliper.pro</a> with the subject line <strong className="text-white/80">&quot;Refund Request&quot;</strong>.</li>
+          <li>Email <a href="mailto:support@autocliper.com" className="text-[#D1FE17] hover:underline">support@autocliper.com</a> with the subject line <strong className="text-white/80">&quot;Refund Request&quot;</strong>.</li>
           <li>Include your registered email address, the date of purchase, and the payment reference or transaction ID.</li>
           <li>Briefly describe the reason for your refund request.</li>
         </ol>
@@ -90,7 +90,7 @@ export default function Refund() {
       <LegalSection title="8. Payment disputes & chargebacks">
         <p>
           Before raising a payment dispute or chargeback with your bank or payment provider,
-          please contact us first at support@autocliper.pro — we resolve billing issues quickly
+          please contact us first at support@autocliper.com — we resolve billing issues quickly
           and prefer to handle them directly. Unresolved fraudulent chargebacks may result in
           account suspension.
         </p>
@@ -101,9 +101,9 @@ export default function Refund() {
           For any refund or cancellation queries:
         </p>
         <ul className="list-disc pl-5 space-y-1 mt-2">
-          <li>Email: <a href="mailto:support@autocliper.pro" className="text-[#D1FE17] hover:underline">support@autocliper.pro</a></li>
+          <li>Email: <a href="mailto:support@autocliper.com" className="text-[#D1FE17] hover:underline">support@autocliper.com</a></li>
           <li>Response time: within 2 business days</li>
-          <li>Website: <a href="/contact" className="text-[#D1FE17] hover:underline">autocliper.pro/contact</a></li>
+          <li>Website: <a href="/contact" className="text-[#D1FE17] hover:underline">autocliper.com/contact</a></li>
         </ul>
       </LegalSection>
     </LegalLayout>

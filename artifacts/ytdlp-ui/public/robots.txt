@@ -7,4 +7,4 @@ Disallow: /admin
 Disallow: /account
 Disallow: /pay/
 
-Sitemap: https://autocliper.pro/sitemap.xml
+Sitemap: https://autocliper.com/sitemap.xml

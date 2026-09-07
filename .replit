@@ -15,9 +15,9 @@ NODE_ENV = "development"
 [userenv.production]
 NODE_ENV = "production"
 YTDLP_PATH = "/home/runner/workspace/bin/yt-dlp"
-VITE_CLERK_PROXY_URL = "https://autocliper.pro/api/__clerk"
-ALLOWED_ORIGIN = "https://autocliper.pro"
-PUBLIC_APP_URL = "https://autocliper.pro"
+VITE_CLERK_PROXY_URL = "https://autocliper.com/api/__clerk"
+ALLOWED_ORIGIN = "https://autocliper.com"
+PUBLIC_APP_URL = "https://autocliper.com"
 
 [workflows]
 runButton = "Project"

@@ -31,6 +31,7 @@ import {
 import { requireAdmin } from "../middlewares/sessionAuth";
 import { toPublicUpiOrder, type UpiOrderRow } from "../lib/zapupi";
 import { logger } from "../lib/logger";
+import { notifyTelegramAdmins } from "../lib/telegram";
 
 const router: IRouter = Router();
 
@@ -118,6 +119,15 @@ router.post("/admin/users/:id/credits", async (req, res): Promise<void> => {
       adminId: req.currentUser!.id,
       note,
     });
+    if (delta > 0) {
+      await notifyTelegramAdmins([
+        "✅ Credits added by admin",
+        `User: ${user.email}`,
+        `Credits: +${delta}`,
+        `Admin: ${req.currentUser!.email}`,
+        note ? `Note: ${note}` : null,
+      ]);
+    }
     res.json({ user: toPublicUser(user) });
   } catch (err) {
     const msg = (err as Error).message;
@@ -246,21 +256,41 @@ router.get("/admin/requests", async (req, res): Promise<void> => {
 });
 
 // ── GET /admin/upi-orders ────────────────────────────────────────────────────
-// Instant UPI payments (ZapUPI) — read-only audit list with payer + UTR.
-// "review" rows are the ones needing human eyes (amount mismatch / test env).
+// Completed value additions only: paid ZapUPI orders and positive credits
+// granted directly by an admin. Pending/failed/review rows are intentionally
+// excluded from the admin Payments screen.
 router.get("/admin/upi-orders", async (_req, res): Promise<void> => {
   if (!pool) { dbDown(res); return; }
-  const { rows } = await pool.query<UpiOrderRow & { user_email: string; user_name: string | null }>(
-    `SELECT o.*, u.email AS user_email, u.name AS user_name
-     FROM upi_orders o JOIN users u ON u.id = o.user_id
-     ORDER BY o.created_at DESC LIMIT 100`,
-  );
+  const [paidOrders, adminCredits] = await Promise.all([
+    pool.query<UpiOrderRow & { user_email: string; user_name: string | null }>(
+      `SELECT o.*, u.email AS user_email, u.name AS user_name
+       FROM upi_orders o JOIN users u ON u.id = o.user_id
+       WHERE o.status = 'paid'
+       ORDER BY COALESCE(o.paid_at, o.created_at) DESC LIMIT 100`,
+    ),
+    pool.query<{
+      id: number;
+      delta: number;
+      bucket: string;
+      meta: Record<string, unknown> | null;
+      created_at: string;
+      user_email: string;
+      user_name: string | null;
+    }>(
+      `SELECT l.id, l.delta, l.bucket, l.meta, l.created_at,
+              u.email AS user_email, u.name AS user_name
+       FROM credit_ledger l JOIN users u ON u.id = l.user_id
+       WHERE l.reason = 'admin_adjust' AND l.delta > 0
+       ORDER BY l.created_at DESC LIMIT 100`,
+    ),
+  ]);
   res.json({
-    orders: rows.map((r) => ({
+    orders: paidOrders.rows.map((r) => ({
       ...toPublicUpiOrder(r),
       user_email: r.user_email,
       user_name: r.user_name,
     })),
+    adminCredits: adminCredits.rows,
   });
 });
 

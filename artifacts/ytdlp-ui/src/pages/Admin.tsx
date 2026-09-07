@@ -1,5 +1,5 @@
 /**
- * Admin panel — stats, manual billing-request approvals, and user management.
+ * Admin panel — stats, automatic UPI payment monitoring, and user management.
  * The API guards every /admin route with requireAdmin; this page additionally
  * only renders for signed-in admins.
  */
@@ -7,13 +7,12 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Loader2, Shield, Users, Inbox, Zap, Search, Check, X, ChevronLeft, RefreshCw, Share2, Plus,
+  Loader2, Shield, Users, Zap, Search, ChevronLeft, RefreshCw, Share2, Plus,
   Upload,
 } from 'lucide-react';
 import { AppHeader } from '../components/AppHeader';
 import { apiFetch, useAuth, type AuthUser } from '../lib/auth';
 import {
-  type BillingRequest,
   type BillingInterval,
   type Catalog,
   type CatalogPlan,
@@ -24,27 +23,17 @@ import {
   fmtInr,
   PLAN_NAMES,
   reasonLabel,
-  requestLabel,
 } from '../lib/billingTypes';
 
 interface AdminStats {
   users: number;
   activeSubscriptions: number;
-  pendingRequests: number;
   creditsUsed30d: number;
 }
 interface AdminUserDetail {
   user: AuthUser;
   ledger: LedgerEntry[];
-  requests: BillingRequest[];
 }
-
-const REQ_STATUS_STYLES: Record<string, string> = {
-  pending: 'bg-amber-400/10 text-amber-300 border-amber-400/25',
-  approved: 'bg-[#D1FE17]/10 text-[#D1FE17] border-[#D1FE17]/25',
-  rejected: 'bg-red-500/10 text-red-400 border-red-500/25',
-  cancelled: 'bg-white/5 text-white/40 border-white/10',
-};
 
 function Chip({ children, tone = 'neutral' }: { children: React.ReactNode; tone?: string }) {
   const styles: Record<string, string> = {
@@ -205,12 +194,12 @@ function YoutubeCookiesCard() {
 export default function Admin() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
-  const initialTab = (): 'requests' | 'users' | 'social' => {
+  const initialTab = (): 'payments' | 'users' | 'social' => {
     const p = new URLSearchParams(window.location.search).get('tab');
     if (p === 'social' || p === 'users') return p;
-    return 'requests';
+    return 'payments';
   };
-  const [tab, setTab] = useState<'requests' | 'users' | 'social'>(initialTab);
+  const [tab, setTab] = useState<'payments' | 'users' | 'social'>(initialTab);
 
   useEffect(() => {
     if (!loading && !user) setLocation('/login?next=/admin');
@@ -255,7 +244,7 @@ export default function Admin() {
         <YoutubeCookiesCard />
 
         <div className="flex gap-2 mt-8 mb-5 flex-wrap">
-          {([['requests', 'Requests', Inbox], ['users', 'Users', Users], ['social', 'Social', Share2]] as const).map(([id, label, Icon]) => (
+          {([['payments', 'Payments', Zap], ['users', 'Users', Users], ['social', 'Social', Share2]] as const).map(([id, label, Icon]) => (
             <button
               key={id}
               onClick={() => setTab(id)}
@@ -268,7 +257,7 @@ export default function Admin() {
           ))}
         </div>
 
-        {tab === 'requests' ? <RequestsTab /> : tab === 'users' ? <UsersTab /> : <SocialTab />}
+        {tab === 'payments' ? <PaymentsTab /> : tab === 'users' ? <UsersTab /> : <SocialTab />}
       </main>
     </div>
   );
@@ -283,11 +272,10 @@ function StatsRow() {
   const items = [
     { label: 'Users', value: data?.users },
     { label: 'Active plans', value: data?.activeSubscriptions },
-    { label: 'Pending requests', value: data?.pendingRequests },
     { label: 'Credits used · 30d', value: data?.creditsUsed30d },
   ];
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {items.map(s => (
         <div key={s.label} className="bg-[#1a1a1a] border border-white/10 rounded-2xl px-4 py-3.5">
           <p className="text-2xl font-black">{s.value ?? '—'}</p>
@@ -298,169 +286,104 @@ function StatsRow() {
   );
 }
 
-// ─── Requests tab ───────────────────────────────────────────────────────────────
-function RequestsTab() {
-  const qc = useQueryClient();
-  const [status, setStatus] = useState<'pending' | 'approved' | 'rejected' | 'cancelled' | 'all'>('pending');
-  const { data, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ['admin-requests', status],
-    queryFn: () => apiFetch<{ requests: BillingRequest[] }>(`/admin/requests?status=${status}`),
-  });
-
-  const invalidateAll = () => {
-    qc.invalidateQueries({ queryKey: ['admin-requests'] });
-    qc.invalidateQueries({ queryKey: ['admin-stats'] });
-    qc.invalidateQueries({ queryKey: ['admin-users'] });
-    qc.invalidateQueries({ queryKey: ['admin-user'] });
-  };
-  const approve = useMutation({
-    mutationFn: (id: number) => apiFetch(`/admin/requests/${id}/approve`, { method: 'POST' }),
-    onSuccess: invalidateAll,
-  });
-  const reject = useMutation({
-    mutationFn: (id: number) => apiFetch(`/admin/requests/${id}/reject`, { method: 'POST' }),
-    onSuccess: invalidateAll,
-  });
-  const actionError = (approve.error as Error | null)?.message || (reject.error as Error | null)?.message || '';
-
+// ─── Payments tab ───────────────────────────────────────────────────────────────
+function PaymentsTab() {
   return (
     <section>
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        {(['pending', 'approved', 'rejected', 'cancelled', 'all'] as const).map(s => (
-          <button
-            key={s}
-            onClick={() => setStatus(s)}
-            className={`px-3 py-1.5 rounded-full text-xs font-black capitalize transition-all ${
-              status === s ? 'bg-white text-black' : 'bg-white/5 text-white/45 hover:text-white border border-white/10'
-            }`}
-          >
-            {s}
-          </button>
-        ))}
-        <button
-          onClick={() => refetch()}
-          className="ml-auto text-white/40 hover:text-white transition-colors"
-          title="Refresh"
-        >
-          <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-        </button>
-      </div>
-
-      {actionError && (
-        <div className="mb-4 bg-red-500/10 border border-red-500/25 rounded-2xl px-4 py-3 text-sm text-red-300">
-          {actionError}
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-7 h-7 text-white/30 animate-spin" /></div>
-      ) : error ? (
-        <p className="text-red-400 text-sm">{(error as Error).message}</p>
-      ) : (data?.requests ?? []).length === 0 ? (
-        <div className="bg-[#1a1a1a] border border-white/10 rounded-3xl p-10 text-center text-white/35 text-sm">
-          No {status === 'all' ? '' : status} requests right now.
-        </div>
-      ) : (
-        <div className="bg-[#1a1a1a] border border-white/10 rounded-3xl overflow-hidden divide-y divide-white/5">
-          {(data?.requests ?? []).map(r => (
-            <div key={r.id} className="px-5 py-4 flex items-center gap-4 flex-wrap">
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold truncate">{r.user_email}</p>
-                <p className="text-white/40 text-xs mt-0.5">
-                  {requestLabel(r)} · +{r.credits} credits
-                </p>
-                <p className="text-white/25 text-[11px] mt-0.5">#{r.id} · {fmtDateTime(r.created_at)}</p>
-              </div>
-              <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full border ${REQ_STATUS_STYLES[r.status]}`}>
-                {r.status}
-              </span>
-              {r.status === 'pending' && (
-                <div className="flex gap-2">
-                  <button
-                    disabled={approve.isPending || reject.isPending}
-                    onClick={() => approve.mutate(r.id)}
-                    className={`${btnCls} bg-[#D1FE17] text-black hover:bg-[#c2ef0e] flex items-center gap-1.5`}
-                  >
-                    {approve.isPending && approve.variables === r.id
-                      ? <Loader2 className="w-4 h-4 animate-spin" />
-                      : <Check className="w-4 h-4" strokeWidth={3} />}
-                    Approve
-                  </button>
-                  <button
-                    disabled={approve.isPending || reject.isPending}
-                    onClick={() => reject.mutate(r.id)}
-                    className={`${btnCls} bg-red-500/10 border border-red-500/25 text-red-400 hover:bg-red-500/20 flex items-center gap-1.5`}
-                  >
-                    <X className="w-4 h-4" strokeWidth={3} /> Reject
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
       <UpiOrdersSection />
     </section>
   );
 }
 
-// ─── UPI payments (instant, ZapUPI) ─────────────────────────────────────────────
-const UPI_STATUS_STYLES: Record<string, string> = {
-  paid: 'bg-[#D1FE17]/10 text-[#D1FE17] border-[#D1FE17]/25',
-  pending: 'bg-amber-400/10 text-amber-300 border-amber-400/25',
-  failed: 'bg-red-500/10 text-red-400 border-red-500/25',
-  review: 'bg-orange-500/15 text-orange-300 border-orange-400/40',
-};
+// ─── Completed payments and admin credits ───────────────────────────────────────
+interface AdminCreditGrant {
+  id: number;
+  delta: number;
+  bucket: string;
+  meta: Record<string, unknown> | null;
+  created_at: string;
+  user_email: string;
+  user_name: string | null;
+}
 
 function UpiOrdersSection() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin-upi-orders'],
-    queryFn: () => apiFetch<{ orders: UpiOrder[] }>('/admin/upi-orders'),
+    queryFn: () => apiFetch<{ orders: UpiOrder[]; adminCredits: AdminCreditGrant[] }>('/admin/upi-orders'),
   });
   const orders = data?.orders ?? [];
-  const needReview = orders.filter(o => o.status === 'review').length;
+  const adminCredits = data?.adminCredits ?? [];
+  const entries = [
+    ...orders.map(order => ({
+      type: 'upi' as const,
+      at: order.paidAt ?? order.createdAt,
+      order,
+    })),
+    ...adminCredits.map(grant => ({
+      type: 'admin' as const,
+      at: grant.created_at,
+      grant,
+    })),
+  ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 
   return (
-    <div className="mt-10">
+    <div>
       <div className="flex items-center gap-3 mb-4">
-        <p className="text-white/40 text-xs font-bold uppercase tracking-widest">UPI payments (instant)</p>
-        {needReview > 0 && (
-          <span className="text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full border bg-orange-500/15 text-orange-300 border-orange-400/40">
-            {needReview} need review
-          </span>
-        )}
+        <p className="text-white/40 text-xs font-bold uppercase tracking-widest">Completed payments &amp; admin credits</p>
       </div>
       {isLoading ? (
         <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 text-white/30 animate-spin" /></div>
       ) : error ? (
         <p className="text-red-400 text-sm">{(error as Error).message}</p>
-      ) : orders.length === 0 ? (
+      ) : entries.length === 0 ? (
         <div className="bg-[#1a1a1a] border border-white/10 rounded-3xl p-8 text-center text-white/35 text-sm">
-          No UPI payments yet. They appear here the moment someone pays from the pricing page.
+          No completed payments or admin-added credits yet.
         </div>
       ) : (
         <div className="bg-[#1a1a1a] border border-white/10 rounded-3xl overflow-hidden divide-y divide-white/5">
-          {orders.map(o => (
-            <div key={o.orderId} className="px-5 py-4 flex items-center gap-4 flex-wrap">
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold truncate">{o.user_email}</p>
-                <p className="text-white/40 text-xs mt-0.5">
-                  {o.kind === 'topup'
-                    ? `${o.quantity ?? 0} ${o.creditType ?? ''} credits`
-                    : (o.plan ? (PLAN_NAMES[o.plan] ?? o.plan) : 'Plan')} · {fmtInr(o.amountInr)}
-                  {o.utr ? ` · UTR ${o.utr}` : ''}
-                </p>
-                <p className="text-white/25 text-[11px] mt-0.5">
-                  {o.orderId} · {fmtDateTime(o.createdAt)}
-                  {o.failReason ? ` · ${o.failReason}` : ''}
-                </p>
+          {entries.map(entry => {
+            if (entry.type === 'admin') {
+              const g = entry.grant;
+              const note = typeof g.meta?.note === 'string' ? g.meta.note : '';
+              return (
+                <div key={`admin-${g.id}`} className="px-5 py-4 flex items-center gap-4 flex-wrap">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold truncate">{g.user_email}</p>
+                    <p className="text-white/40 text-xs mt-0.5">
+                      +{g.delta.toLocaleString()} {g.bucket.replace(/_/g, ' ')} credits · Added by admin
+                    </p>
+                    <p className="text-white/25 text-[11px] mt-0.5">
+                      {fmtDateTime(g.created_at)}{note ? ` · ${note}` : ''}
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full border bg-sky-400/10 text-sky-300 border-sky-400/25">
+                    Admin added
+                  </span>
+                </div>
+              );
+            }
+
+            const o = entry.order;
+            return (
+              <div key={o.orderId} className="px-5 py-4 flex items-center gap-4 flex-wrap">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold truncate">{o.user_email}</p>
+                  <p className="text-white/40 text-xs mt-0.5">
+                    {o.kind === 'topup'
+                      ? `${o.quantity ?? 0} ${o.creditType ?? ''} credits`
+                      : (o.plan ? (PLAN_NAMES[o.plan] ?? o.plan) : 'Plan')} · {fmtInr(o.amountInr)}
+                    {o.utr ? ` · UTR ${o.utr}` : ''}
+                  </p>
+                  <p className="text-white/25 text-[11px] mt-0.5">
+                    {o.orderId} · {fmtDateTime(o.paidAt ?? o.createdAt)}
+                  </p>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full border bg-[#D1FE17]/10 text-[#D1FE17] border-[#D1FE17]/25">
+                  Paid
+                </span>
               </div>
-              <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full border ${UPI_STATUS_STYLES[o.status] ?? UPI_STATUS_STYLES.pending}`}>
-                {o.status}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -755,8 +678,8 @@ function UserDetail({ id, onBack }: { id: string; onBack: () => void }) {
         </div>
       </div>
 
-      {/* Ledger + requests */}
-      <div className="grid md:grid-cols-2 gap-4">
+      {/* Credit activity */}
+      <div>
         <div className="bg-[#1a1a1a] border border-white/10 rounded-3xl p-5">
           <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-3">Credit activity</p>
           {data.ledger.length === 0 ? (
@@ -771,26 +694,6 @@ function UserDetail({ id, onBack }: { id: string; onBack: () => void }) {
                   </div>
                   <span className={`text-sm font-black shrink-0 ${e.delta >= 0 ? 'text-[#D1FE17]' : 'text-white/55'}`}>
                     {e.delta >= 0 ? '+' : ''}{e.delta}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="bg-[#1a1a1a] border border-white/10 rounded-3xl p-5">
-          <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-3">Billing requests</p>
-          {data.requests.length === 0 ? (
-            <p className="text-white/35 text-sm">No requests yet.</p>
-          ) : (
-            <div className="divide-y divide-white/5">
-              {data.requests.map(r => (
-                <div key={r.id} className="py-2 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm text-white/75 truncate">{requestLabel(r)}</p>
-                    <p className="text-white/25 text-xs">{fmtDateTime(r.created_at)}</p>
-                  </div>
-                  <span className={`text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full border shrink-0 ${REQ_STATUS_STYLES[r.status]}`}>
-                    {r.status}
                   </span>
                 </div>
               ))}

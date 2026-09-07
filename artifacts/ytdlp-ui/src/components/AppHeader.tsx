@@ -66,7 +66,7 @@ export function AppHeader() {
                 {label}
               </Link>
             ))}
-            <Link href="/#refer" className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[#D1FE17]/80 hover:text-[#D1FE17] hover:bg-[#D1FE17]/8 transition-all duration-150">
+            <Link href="/account#refer" className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[#D1FE17]/80 hover:text-[#D1FE17] hover:bg-[#D1FE17]/8 transition-all duration-150">
               <Gift className="w-3.5 h-3.5" />Refer
             </Link>
           </div>

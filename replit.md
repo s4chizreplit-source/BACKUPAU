@@ -1,6 +1,6 @@
 # AutoCliper (ClipAI) — Long Videos → Short Viral Clips
 
-Full-stack app that turns long YouTube/Kick/Twitch/Drive/Dropbox videos into short viral clips (ffmpeg + yt-dlp + paid Zyla engine for YouTube). Live at autocliper.pro (Reserved VM).
+Full-stack app that turns long YouTube/Kick/Twitch/Drive/Dropbox videos into short viral clips (ffmpeg + yt-dlp + paid Zyla engine for YouTube). Live at autocliper.com (Reserved VM).
 
 **Fresh import / new host?** Follow `SETUP_PROMPT.md` (root) — complete runbook: system deps (ffmpeg, yt-dlp download into gitignored `bin/`), env vars, DB, storage, verify + deploy steps.
 
@@ -31,7 +31,7 @@ Full-stack app that turns long YouTube/Kick/Twitch/Drive/Dropbox videos into sho
 
 - Every user gets a lazy-minted `users.referral_code` (`GET /api/referral/me`); friends land with `?ref=CODE` (captured on any route → localStorage 30d → sent in signup body; bad/self codes silently ignored). One `referrals` row per referred user (UNIQUE `referred_id`).
 - Reward: +1000 never-expiring top-up credits (`REFERRAL_REWARD_CREDITS`, billing.ts) when the friend's **first** plan is granted — fires inside `grantSubscriptionTx` with a one-shot `rewarded_at IS NULL` guard (ledger reason `referral_reward`). Stripe/any future payment path must keep granting plans via these fns so the payout keeps firing.
-- Share links come from `SITE_ORIGIN` (`ytdlp-ui/src/lib/site.ts`; default autocliper.pro, `VITE_SITE_URL` override) — never `window.location`. UI: Account "Refer & earn" card + landing banner + user-menu item. Tests: `api-server/src/__tests__/referrals.test.ts`.
+- Share links come from `SITE_ORIGIN` (`ytdlp-ui/src/lib/site.ts`; default autocliper.com, `VITE_SITE_URL` override) — never `window.location`. UI: Account "Refer & earn" card + landing banner + user-menu item. Tests: `api-server/src/__tests__/referrals.test.ts`.
 
 ## Key Files
 
@@ -52,5 +52,5 @@ Full-stack app that turns long YouTube/Kick/Twitch/Drive/Dropbox videos into sho
 
 - Clips stored in Replit Object Storage (5 GB cap, 2 h TTL); job records mirrored to Object Storage for multi-instance safety
 - Async job queue: local CPU/RAM/disk guard plus PostgreSQL-backed shared admission and worker leases; jobs are pollable/cancellable across instances (`DELETE /api/video/job/:id`). Tune fleet-wide capacity with `MAX_GLOBAL_CONCURRENT_JOBS`, not by raising per-instance limits blindly.
-- Reserved VM prod = single process; **publish after backend changes** so autocliper.pro gets new code + schema
+- Reserved VM prod = single process; **publish after backend changes** so autocliper.com gets new code + schema
 - pg returns NUMERIC columns (e.g. `billing_requests.amount_usd`) as **strings**

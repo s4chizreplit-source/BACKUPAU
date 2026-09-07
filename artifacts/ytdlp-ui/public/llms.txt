@@ -5,10 +5,10 @@
 AutoCliper uses AI to automatically find the best moments in long videos and clip them into short-form content ready for TikTok, YouTube Shorts, and Instagram Reels.
 
 ## Key pages
-- [Home](https://autocliper.pro/)
-- [Pricing](https://autocliper.pro/pricing)
-- [Terms](https://autocliper.pro/terms)
-- [Privacy](https://autocliper.pro/privacy)
+- [Home](https://autocliper.com/)
+- [Pricing](https://autocliper.com/pricing)
+- [Terms](https://autocliper.com/terms)
+- [Privacy](https://autocliper.com/privacy)
 
 ## Features
 - AI-powered clip selection (loudest, most engaging moments)

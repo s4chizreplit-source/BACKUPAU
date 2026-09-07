@@ -18,17 +18,16 @@ const app: Express = express();
 // Required for express-rate-limit to read the real client IP from X-Forwarded-For.
 app.set("trust proxy", 1);
 
-// The .pro domain is the public origin. Keep legacy .com and www URLs from
+// The .com apex domain is the public origin. Keep the www URL from
 // competing with the canonical pages in search indexes.
 const legacyHosts = new Set([
-  "autocliper.com",
   "www.autocliper.com",
 ]);
 app.use((req, res, next) => {
   if (process.env.NODE_ENV !== "production" || !legacyHosts.has(req.hostname.toLowerCase())) {
     return next();
   }
-  return res.redirect(308, `https://autocliper.pro${req.originalUrl}`);
+  return res.redirect(308, `https://autocliper.com${req.originalUrl}`);
 });
 
 // Security headers — XSS, clickjacking, MIME sniff, etc.
@@ -122,10 +121,10 @@ app.use(
   }),
 );
 
-// ALLOWED_ORIGIN — defaults to autocliper.pro in prod, open in dev.
+// ALLOWED_ORIGIN — defaults to autocliper.com in prod, open in dev.
 // Set this env var to lock down CORS to a specific domain.
 const allowedOrigin = process.env.ALLOWED_ORIGIN
-  ?? (process.env.NODE_ENV === "production" ? "https://autocliper.pro" : "*");
+  ?? (process.env.NODE_ENV === "production" ? "https://autocliper.com" : "*");
 app.use(
   cors({
     credentials: allowedOrigin !== "*",

@@ -6,7 +6,7 @@ export default function Terms() {
       <LegalSection title="1. About AutoCliper">
         <p>
           AutoCliper (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) is an AI-powered video clipping service operated by
-          AutoCliper (autocliper.pro). We help creators and businesses automatically find the best
+          AutoCliper (autocliper.com). We help creators and businesses automatically find the best
           moments in long videos and convert them into short clips for YouTube Shorts, Instagram
           Reels, and TikTok. By creating an account or using our service, you agree to these Terms.
         </p>
@@ -29,7 +29,7 @@ export default function Terms() {
           <li>Keeping your password and login details confidential.</li>
           <li>All activity that occurs under your account.</li>
           <li>Providing a valid email address so we can assist with billing and support.</li>
-          <li>Notifying us immediately at support@autocliper.pro if you suspect unauthorised access.</li>
+          <li>Notifying us immediately at support@autocliper.com if you suspect unauthorised access.</li>
         </ul>
         <p className="mt-3">
           You may register only one account per person. Creating multiple accounts to obtain free
@@ -153,8 +153,8 @@ export default function Terms() {
           For any questions about these Terms, please contact us:
         </p>
         <ul className="list-disc pl-5 space-y-1 mt-2">
-          <li>Email: <a href="mailto:support@autocliper.pro" className="text-[#D1FE17] hover:underline">support@autocliper.pro</a></li>
-          <li>Website: <a href="/contact" className="text-[#D1FE17] hover:underline">autocliper.pro/contact</a></li>
+          <li>Email: <a href="mailto:support@autocliper.com" className="text-[#D1FE17] hover:underline">support@autocliper.com</a></li>
+          <li>Website: <a href="/contact" className="text-[#D1FE17] hover:underline">autocliper.com/contact</a></li>
         </ul>
       </LegalSection>
     </LegalLayout>
